@@ -1,9 +1,10 @@
 import React from 'react';
+
 import Button from '../Button';
 
 import './index.css';
 
-const Table = ({list, pattern, onDismiss}) => 
+const Table = ({list, onDismiss}) => 
   <div className="table">
     {
         list.map(item =>
@@ -26,5 +27,4 @@ const Table = ({list, pattern, onDismiss}) =>
         )
     }
   </div>
-
-  export default Table;
+export default Table;

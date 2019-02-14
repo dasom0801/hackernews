@@ -3,7 +3,7 @@ import React from 'react';
 import './index.css';
 
 
-const Button = ({onClick, className = '', children}) => {
+const Button = ({onClick, className, children}) => {
   return (
     <button
       onClick={onClick}
@@ -14,5 +14,6 @@ const Button = ({onClick, className = '', children}) => {
     </button>
   );
 }
+
 
 export default Button;

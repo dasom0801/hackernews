@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import {sortBy} from 'lodash'
 
 import Button from '../Button';
 import Search from '../Search';
@@ -18,12 +17,23 @@ import {
   PARAM_HPP,
 } from '../../constants';
 
-const SORTS = {
-  NONE: list => list,
-  TITLE: list => sortBy(list, 'title'),
-  AUTHOR: list => sortBy(list, 'author'),
-  COMMENTS: list => sortBy(list, 'num_comments').reverse(),
-  POINTS: list => sortBy(list, 'points').reverse(),
+const updateSearchTopStoriesState = (hits, page) => (prevState) => {
+  const { searchKey, results } = prevState;
+  const oldHits = results && results[searchKey]
+    ? results[searchKey].hits
+    : [];
+
+  const updatedHits = [
+    ...oldHits,
+    ...hits
+  ];
+  return {
+    results: {
+      ...results,
+      [searchKey]: { hits: updatedHits, page }
+    },
+    isLoading: false
+  };
 };
 
 const Loading = () => (<div> Loading... </div>);
@@ -45,8 +55,6 @@ class App extends Component {
       searchTerm: DEFAULT_QUERY,
       error: null,
       isLoading: false,
-      sortKey: 'NONE',
-      isSortReverse: false,
     };
     
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
@@ -55,7 +63,6 @@ class App extends Component {
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
-    this.onSort = this.onSort.bind(this);
   }
 
   
@@ -65,24 +72,7 @@ class App extends Component {
 
   setSearchTopStories(result) {
     const { hits, page } = result;
-    const { searchKey, results } = this.state; 
-
-    const oldHits = results && results[searchKey] 
-      ? results[searchKey].hits
-      : [];
-
-    const updatedHits = [
-      ...oldHits,
-      ...hits
-    ];
-
-    this.setState({
-      results: {
-        ...results,
-        [searchKey]: { hits: updatedHits, page }
-      },
-      isLoading: false
-    });
+    this.setState(updateSearchTopStoriesState(hits, page));
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
@@ -121,11 +111,6 @@ class App extends Component {
     });
   }
 
-   onSort(sortKey) {
-     const isSortReverse = this.state.sortKey === sortKey && !this.state.isSortReverse;
-     this.setState({ sortKey, isSortReverse });
-   }
-
   componentDidMount() {
     this._isMounted = true;
     const { searchTerm } = this.state;
@@ -144,8 +129,6 @@ class App extends Component {
       searchKey, 
       error, 
       isLoading, 
-      sortKey,
-      isSortReverse
     } = this.state;
 
     const page = ( 
@@ -179,10 +162,6 @@ class App extends Component {
               </div>
             : <Table 
                 list={list}
-                SORTS={SORTS}
-                sortKey={sortKey}
-                isSortReverse={isSortReverse}
-                onSort={this.onSort}
                 onDismiss={this.onDismiss}
             />
           }
